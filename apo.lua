@@ -30,22 +30,36 @@ local mobs = {
 }
 
 do
-    -- Criar o dropdown
+    -- Criar uma tabela com as chaves do dicionário
+    local mobNames = {}
+    for mobName, _ in pairs(mobs) do
+        table.insert(mobNames, mobName)
+    end
+    
+    -- Criar o dropdown usando a tabela de nomes
     local MobDropdown = Tabs.Main:AddDropdown("MobDropdown", {
         Title = "Select Mob",
         Description = "Select a mob to interact with",
-        Values = {}, -- Será preenchido com as chaves do dicionário
-        Multi = false, -- Pode mudar para true se quiser selecionar múltiplos
+        Values = mobNames, -- Usar a tabela preenchida dinamicamente
+        Multi = false,
         Default = "Zaruka"
     })
-
-    MobDropdown:SetValue("Zaruka") -- Definir o valor padrão
-
-    -- Preencher o dropdown com as chaves do dicionário
-    for mobName, _ in pairs(mobs) do
-        local dropdownValues = {}
-        table.insert(dropdownValues, mobName)
-    end
+    
+    MobDropdown:SetValue("Zaruka")
+    
+    MobDropdown:OnChanged(function(Value)
+        local selectedTemplate = mobs[Value]
+        for _, mob in pairs(game.Workspace.temp:GetChildren()) do
+            local shirt = mob:FindFirstChild("Shirt")
+            if shirt and shirt.ShirtTemplate == selectedTemplate then
+                Fluent:Notify({
+                    Title = "Mob Found",
+                    Content = "Found a " .. Value .. " with UUID: " .. mob.Name,
+                    Duration = 3
+                })
+            end
+        end
+    end)
 
     -- Evento quando o valor do dropdown muda
     MobDropdown:OnChanged(function(Value)
