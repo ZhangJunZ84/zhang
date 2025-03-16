@@ -70,6 +70,9 @@ do
         Default = false,
     })
     
+    -- Serviço de Tween do Roblox
+    local TweenService = game:GetService("TweenService")
+    
     AutoFarmToggle:OnChanged(function()
         if Options.AutoFarm.Value then
             task.spawn(function()
@@ -93,10 +96,25 @@ do
                     end
                 
                     if targetMob then
-                        -- Enquanto o mob existir, teleportar o jogador para o CFrame dele
+                        -- Enquanto o mob existir, mover o jogador até ele com tween
                         while Options.AutoFarm.Value and targetMob.Parent do
-                            player.Character.HumanoidRootPart.CFrame = targetMob.HumanoidRootPart.CFrame -- Teleporta para o mob
-                            wait(0.1) -- Delay para verificar a existência e não travar
+                            local humanoidRootPart = player.Character.HumanoidRootPart
+                            local targetCFrame = targetMob.HumanoidRootPart.CFrame
+                        
+                            -- Criar o tween para mover o jogador
+                            local tweenInfo = TweenInfo.new(
+                                0.5, -- Duração do movimento (ajuste conforme necessário)
+                                Enum.EasingStyle.Linear, -- Estilo de movimento suave
+                                Enum.EasingDirection.Out,
+                                0, -- Repetições (0 = uma vez)
+                                false, -- Não inverte
+                                0 -- Delay antes de começar
+                            )
+                            local tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = targetCFrame})
+                            tween:Play()
+                            tween.Completed:Wait() -- Espera o tween terminar antes de continuar
+                        
+                            wait(0.1) -- Pequeno delay para verificar a existência e dar tempo ao jogo
                         end
                         Fluent:Notify({
                             Title = "Mob Defeated",
@@ -104,13 +122,12 @@ do
                             Duration = 2
                         })
                     else
-                        -- Se não encontrar nenhum mob, esperar um pouco antes de tentar novamente
                         Fluent:Notify({
                             Title = "No Mob Found",
                             Content = "No " .. selectedMobType .. " found, searching...",
                             Duration = 2
                         })
-                        wait(1)
+                        wait(1) -- Espera antes de tentar novamente
                     end
                 end
             end)
