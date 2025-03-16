@@ -63,48 +63,52 @@ do
         end
     end)
 
-        -- Botão para teste (mantido para referência)
-    Tabs.Main:AddButton({
-        Title = "Go to Mob",
-        Description = "Walks to the selected mob",
-        Callback = function()
-            while not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") or not player.Character:FindFirstChild("Humanoid") do
-                wait()
-            end
-        
-            local selectedMobType = MobDropdown.Value
-            local selectedTemplate = mobs[selectedMobType]
-        
-            local targetMob = nil
-            for _, mob in pairs(game.Workspace.temp:GetChildren()) do
-                local shirt = mob:FindFirstChild("Shirt")
-                if shirt and shirt.ShirtTemplate == selectedTemplate then
-                    targetMob = mob
-                    break
-                end
-            end
-        
-            if targetMob then
-                local humanoid = player.Character.Humanoid
-                local targetPosition = targetMob.HumanoidRootPart.Position
-                humanoid:MoveTo(targetPosition)
-                Fluent:Notify({
-                    Title = "Walking to Mob",
-                    Content = "Walking to " .. selectedMobType,
-                    Duration = 3
-                })
-                humanoid.MoveToFinished:Wait()
-            else
-                Fluent:Notify({
-                    Title = "No Mob Found",
-                    Content = "No " .. selectedMobType .. " found!",
-                    Duration = 3
-                })
+   -- Botão para teste com teletransporte offset
+Tabs.Main:AddButton({
+    Title = "Go to Mob",
+    Description = "Teleports near the selected mob",
+    Callback = function()
+        while not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") do
+            wait()
+        end
+
+        local selectedMobType = MobDropdown.Value
+        local selectedTemplate = mobs[selectedMobType]
+
+        local targetMob = nil
+        for _, mob in pairs(game.Workspace.temp:GetChildren()) do
+            local shirt = mob:FindFirstChild("Shirt")
+            if shirt and shirt.ShirtTemplate == selectedTemplate then
+                targetMob = mob
+                break
             end
         end
-    })
-    
-    -- Toggle de Auto Farm com MoveTo
+
+        if targetMob then
+            local humanoidRootPart = player.Character.HumanoidRootPart
+            local targetPosition = targetMob.HumanoidRootPart.Position
+            -- Calcular posição afastada (5 studs à esquerda)
+            local offsetPosition = targetPosition - Vector3.new(5, 0, 0)
+
+            -- Teletransportar para a posição offset
+            humanoidRootPart.CFrame = CFrame.new(offsetPosition)
+
+            Fluent:Notify({
+                Title = "Teleported to Mob",
+                Content = "Teleported near " .. selectedMobType,
+                Duration = 3
+            })
+        else
+            Fluent:Notify({
+                Title = "No Mob Found",
+                Content = "No " .. selectedMobType .. " found!",
+                Duration = 3
+            })
+        end
+    end
+})
+
+    -- Toggle de Auto Farm com teletransporte offset
     local AutoFarmToggle = Tabs.Main:AddToggle("AutoFarm", {
         Title = "Auto Farm",
         Description = "Will farm selected mob",
@@ -116,8 +120,8 @@ do
             task.spawn(function()
                 while Options.AutoFarm.Value do
                     wait()
-                    while not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") or not player.Character:FindFirstChild("Humanoid") do
-                        wait() -- Aguarda o personagem estar pronto
+                    while not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") do
+                        wait()
                     end
                 
                     local selectedMobType = MobDropdown.Value
@@ -134,15 +138,17 @@ do
                     end
                 
                     if targetMob then
-                        -- Enquanto o mob existir, andar até ele
+                        -- Enquanto o mob existir, teleportar para uma posição próxima
                         while Options.AutoFarm.Value and targetMob.Parent do
-                            local humanoid = player.Character.Humanoid
+                            local humanoidRootPart = player.Character.HumanoidRootPart
                             local targetPosition = targetMob.HumanoidRootPart.Position
+                            -- Calcular posição afastada (5 studs à esquerda)
+                            local offsetPosition = targetPosition - Vector3.new(5, 0, 0)
                         
-                            humanoid:MoveTo(targetPosition)
-                            humanoid.MoveToFinished:Wait() -- Espera o personagem chegar ou falhar
+                            -- Teletransportar
+                            humanoidRootPart.CFrame = CFrame.new(offsetPosition)
                         
-                            wait(0.5) -- Delay para dar tempo ao jogo processar a derrota do mob
+                            wait(0.5) -- Delay para o mob ser derrotado
                         end
                         Fluent:Notify({
                             Title = "Mob Defeated",
@@ -155,7 +161,7 @@ do
                             Content = "No " .. selectedMobType .. " found, searching...",
                             Duration = 2
                         })
-                        wait(1) -- Espera antes de procurar novamente
+                        wait(1)
                     end
                 end
             end)
