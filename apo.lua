@@ -31,7 +31,7 @@ local mobs = {
 
 do
     -- Criar o dropdown
-    local MobDropdown = Tabs.Mobs:AddDropdown("MobDropdown", {
+    local MobDropdown = Tabs.Main:AddDropdown("MobDropdown", {
         Title = "Select Mob",
         Description = "Select a mob to interact with",
         Values = {}, -- Será preenchido com as chaves do dicionário
