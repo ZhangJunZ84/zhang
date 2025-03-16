@@ -39,12 +39,13 @@ do
         Default = "Zaruka"
     })
 
+    MobDropdown:SetValue("Zaruka") -- Definir o valor padrão
+
     -- Preencher o dropdown com as chaves do dicionário
-    local dropdownValues = {}
     for mobName, _ in pairs(mobs) do
+        local dropdownValues = {}
         table.insert(dropdownValues, mobName)
     end
-    MobDropdown:BuildDropdownList(dropdownValues) -- Atualiza a lista do dropdown
 
     -- Evento quando o valor do dropdown muda
     MobDropdown:OnChanged(function(Value)
