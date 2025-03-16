@@ -62,20 +62,19 @@ do
             end
         end
     end)
-    
-    -- Botão para testar o movimento até o mob com MoveTo
+
+        -- Botão para teste (mantido para referência)
     Tabs.Main:AddButton({
         Title = "Go to Mob",
         Description = "Walks to the selected mob",
         Callback = function()
             while not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") or not player.Character:FindFirstChild("Humanoid") do
-                wait() -- Aguarda o personagem estar pronto com Humanoid
+                wait()
             end
-
+        
             local selectedMobType = MobDropdown.Value
             local selectedTemplate = mobs[selectedMobType]
-
-            -- Procura o mob
+        
             local targetMob = nil
             for _, mob in pairs(game.Workspace.temp:GetChildren()) do
                 local shirt = mob:FindFirstChild("Shirt")
@@ -84,21 +83,17 @@ do
                     break
                 end
             end
-
+        
             if targetMob then
                 local humanoid = player.Character.Humanoid
-                local targetPosition = targetMob.HumanoidRootPart.Position -- Usar apenas a posição (Vector3) para MoveTo
-
-                -- Fazer o personagem andar até o mob
+                local targetPosition = targetMob.HumanoidRootPart.Position
                 humanoid:MoveTo(targetPosition)
                 Fluent:Notify({
                     Title = "Walking to Mob",
                     Content = "Walking to " .. selectedMobType,
                     Duration = 3
                 })
-
-                -- Opcional: esperar o personagem chegar ou timeout
-                humanoid.MoveToFinished:Wait() -- Aguarda até o movimento terminar ou falhar
+                humanoid.MoveToFinished:Wait()
             else
                 Fluent:Notify({
                     Title = "No Mob Found",
@@ -108,26 +103,27 @@ do
             end
         end
     })
-
-    -- Toggle de Auto Farm (mantido como estava, vamos ajustar depois)
+    
+    -- Toggle de Auto Farm com MoveTo
     local AutoFarmToggle = Tabs.Main:AddToggle("AutoFarm", {
         Title = "Auto Farm",
         Description = "Will farm selected mob",
         Default = false,
     })
-
+    
     AutoFarmToggle:OnChanged(function()
         if Options.AutoFarm.Value then
             task.spawn(function()
                 while Options.AutoFarm.Value do
                     wait()
-                    while not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") do
-                        wait()
+                    while not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") or not player.Character:FindFirstChild("Humanoid") do
+                        wait() -- Aguarda o personagem estar pronto
                     end
-
+                
                     local selectedMobType = MobDropdown.Value
                     local selectedTemplate = mobs[selectedMobType]
-
+                
+                    -- Procura um mob
                     local targetMob = nil
                     for _, mob in pairs(game.Workspace.temp:GetChildren()) do
                         local shirt = mob:FindFirstChild("Shirt")
@@ -136,16 +132,17 @@ do
                             break
                         end
                     end
-
+                
                     if targetMob then
+                        -- Enquanto o mob existir, andar até ele
                         while Options.AutoFarm.Value and targetMob.Parent do
-                            local humanoidRootPart = player.Character.HumanoidRootPart
-                            local targetCFrame = targetMob.HumanoidRootPart.CFrame
-                            local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0)
-                            local tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = targetCFrame})
-                            tween:Play()
-                            tween.Completed:Wait()
-                            wait(0.1)
+                            local humanoid = player.Character.Humanoid
+                            local targetPosition = targetMob.HumanoidRootPart.Position
+                        
+                            humanoid:MoveTo(targetPosition)
+                            humanoid.MoveToFinished:Wait() -- Espera o personagem chegar ou falhar
+                        
+                            wait(0.5) -- Delay para dar tempo ao jogo processar a derrota do mob
                         end
                         Fluent:Notify({
                             Title = "Mob Defeated",
@@ -158,13 +155,13 @@ do
                             Content = "No " .. selectedMobType .. " found, searching...",
                             Duration = 2
                         })
-                        wait(1)
+                        wait(1) -- Espera antes de procurar novamente
                     end
                 end
             end)
         end
     end)
-
+    
     Options.AutoFarm:SetValue(false)
 
     local AutoClickToggle = Tabs.Main:AddToggle("AutoClick", {
