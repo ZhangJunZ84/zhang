@@ -62,17 +62,13 @@ do
             end
         end
     end)
-    
--- Serviço de Tween do Roblox
-local TweenService = game:GetService("TweenService")
-
--- Botão para testar o movimento até o mob
+-- Botão para testar o movimento até o mob com MoveTo
 Tabs.Main:AddButton({
     Title = "Go to Mob",
-    Description = "Moves to the selected mob",
+    Description = "Walks to the selected mob",
     Callback = function()
-        while not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") do
-            wait() -- Aguarda o personagem estar pronto
+        while not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") or not player.Character:FindFirstChild("Humanoid") do
+            wait() -- Aguarda o personagem estar pronto com Humanoid
         end
 
         local selectedMobType = MobDropdown.Value
@@ -89,26 +85,19 @@ Tabs.Main:AddButton({
         end
 
         if targetMob then
-            local humanoidRootPart = player.Character.HumanoidRootPart
-            local targetCFrame = targetMob.HumanoidRootPart.CFrame
+            local humanoid = player.Character.Humanoid
+            local targetPosition = targetMob.HumanoidRootPart.Position -- Usar apenas a posição (Vector3) para MoveTo
 
-            -- Criar o tween
-            local tweenInfo = TweenInfo.new(
-                1, -- Duração maior para parecer mais natural (ajustável)
-                Enum.EasingStyle.Quad, -- Movimento mais suave
-                Enum.EasingDirection.Out,
-                0,
-                false,
-                0
-            )
-            local tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = targetCFrame})
-            tween:Play()
-
+            -- Fazer o personagem andar até o mob
+            humanoid:MoveTo(targetPosition)
             Fluent:Notify({
-                Title = "Moving to Mob",
-                Content = "Moving to " .. selectedMobType,
+                Title = "Walking to Mob",
+                Content = "Walking to " .. selectedMobType,
                 Duration = 3
             })
+
+            -- Opcional: esperar o personagem chegar ou timeout
+            humanoid.MoveToFinished:Wait() -- Aguarda até o movimento terminar ou falhar
         else
             Fluent:Notify({
                 Title = "No Mob Found",
@@ -119,7 +108,7 @@ Tabs.Main:AddButton({
     end
 })
 
--- Toggle de Auto Farm
+-- Toggle de Auto Farm (mantido como estava, vamos ajustar depois)
 local AutoFarmToggle = Tabs.Main:AddToggle("AutoFarm", {
     Title = "Auto Farm",
     Description = "Will farm selected mob",
@@ -138,7 +127,6 @@ AutoFarmToggle:OnChanged(function()
                 local selectedMobType = MobDropdown.Value
                 local selectedTemplate = mobs[selectedMobType]
 
-                -- Procura um mob
                 local targetMob = nil
                 for _, mob in pairs(game.Workspace.temp:GetChildren()) do
                     local shirt = mob:FindFirstChild("Shirt")
@@ -152,20 +140,10 @@ AutoFarmToggle:OnChanged(function()
                     while Options.AutoFarm.Value and targetMob.Parent do
                         local humanoidRootPart = player.Character.HumanoidRootPart
                         local targetCFrame = targetMob.HumanoidRootPart.CFrame
-
-                        -- Tween para mover o jogador
-                        local tweenInfo = TweenInfo.new(
-                            0.5, -- Duração do movimento
-                            Enum.EasingStyle.Linear,
-                            Enum.EasingDirection.Out,
-                            0,
-                            false,
-                            0
-                        )
+                        local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0)
                         local tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = targetCFrame})
                         tween:Play()
                         tween.Completed:Wait()
-
                         wait(0.1)
                     end
                     Fluent:Notify({
